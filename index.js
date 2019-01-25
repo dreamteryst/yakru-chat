@@ -25,6 +25,14 @@ io.on('connection', function(socket) {
         payload
       )
     })
+
+    socket.on(roomId + '/request share screen', function(userId) {
+      socket.broadcast.emit(roomId + '/request share screen', userId)
+    })
+    socket.on(roomId + '/user response', function(data) {
+      socket.broadcast.emit(roomId + '/user response', data)
+    })
+
   })
   socket.on('start stream', function() {
     socket.interval = setInterval(function() {
