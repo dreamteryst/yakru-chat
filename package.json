@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Yakru socket.io",
   "dependencies": {
+    "cors": "^2.8.5",
     "express": "^4.15.2",
     "socket.io": "^1.7.3"
   },
