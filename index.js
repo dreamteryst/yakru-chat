@@ -34,6 +34,9 @@ io.on('connection', function(socket) {
     socket.on(roomId + '/user response', function(data) {
       socket.broadcast.emit(roomId + '/user response', data)
     })
+    socket.on(roomId + '/stop student screen', function(data) {
+      socket.broadcast.emit(roomId + '/stop student screen', data)
+    })
 
   })
   socket.on('start stream', function() {
