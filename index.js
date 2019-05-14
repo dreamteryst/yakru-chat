@@ -1,11 +1,22 @@
 var cors = require('cors')
 var app = require('express')()
 app.use(cors())
+const https = require('https');
 var http = require('http').Server(app)
 var io = require('socket.io')(http)
 var port = process.env.PORT || 3000
+var axios = require('axios')
+const HOST = 'https://yakru.test'
+
+const instance = axios.create({
+  httpsAgent: new https.Agent({  
+    rejectUnauthorized: false
+  })
+});
 
 var time = {}
+var exam = {}
+var index = {}
 
 app.get('/', function(req, res) {
   res.sendFile(__dirname + '/index.html')
@@ -38,12 +49,50 @@ io.on('connection', function(socket) {
       socket.broadcast.emit(roomId + '/stop student screen', data)
     })
 
+    socket.on(roomId + '/start exam', function(data) {
+        exam[roomId] = data
+        exam[roomId]['users'] = []
+        socket.broadcast.emit(roomId + '/start exam')
+    })
+    socket.on(roomId + '/join exam', function(user) {
+      console.log(user.firstname + " joined room")
+      const tempUser = {...user}
+      tempUser.point = 0
+      exam[roomId].users.push(tempUser)
+    })
+    socket.on(roomId + '/next exam', function(data) {
+      index[roomId] = data.i
+      const question = {...exam[roomId].question[data.i]}
+      question.time = data.time
+      delete question.ans
+
+      socket.broadcast.emit(roomId + '/next exam', question)
+
+      if(data.i + 1 == exam[roomId].question.length) {
+        setTimeout(() => {
+          io.emit(roomId + '/end exam', exam[roomId].user)
+        }, data.time * 60 * 1000)
+      }
+    })
+    socket.on(roomId + '/answer exam', function(data) {
+      console.log('answer')
+      if (exam[roomId].question[index[roomId]].ansText == data.text) {
+        const user = exam[roomId].users.find(user => user.id == data.user.id)
+        user.point += data.timeLeft + 1
+      }
+      io.emit(roomId + '/result exam', exam[roomId].users)
+    })
+    socket.on(roomId + '/end exam', function () {
+      io.emit(roomId + '/end exam', exam[roomId].user)
+    })
+
   })
   socket.on('start stream', function() {
     socket.interval = setInterval(function() {
       setTime(socket.roomId)
     }, 1000)
   })
+
   socket.on('disconnect', function() {
     clearInterval(socket.interval)
   })
