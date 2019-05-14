@@ -17,6 +17,7 @@ const instance = axios.create({
 var time = {}
 var exam = {}
 var index = {}
+var examTime = {}
 
 app.get('/', function(req, res) {
   res.sendFile(__dirname + '/index.html')
@@ -54,7 +55,7 @@ io.on('connection', function(socket) {
         exam[roomId]['users'] = []
         socket.broadcast.emit(roomId + '/start exam')
     })
-    
+
     socket.on(roomId + '/join exam', function(user) {
       console.log(user.firstname + " joined room")
       const tempUser = {...user}
@@ -65,6 +66,7 @@ io.on('connection', function(socket) {
       index[roomId] = data.i
       const question = {...exam[roomId].question[data.i]}
       question.time = data.time
+      examTime[roomId] = data.time
       delete question.ans
 
       socket.broadcast.emit(roomId + '/next exam', question)
@@ -79,7 +81,7 @@ io.on('connection', function(socket) {
       console.log('answer')
       if (exam[roomId].question[index[roomId]].ansText == data.text) {
         const user = exam[roomId].users.find(user => user.id == data.user.id)
-        user.point += data.timeLeft + 1
+        user.point += (data.timeLeft * 1000) / examTime[roomId]
       }
       io.emit(roomId + '/result exam', exam[roomId].users)
     })
