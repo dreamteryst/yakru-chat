@@ -54,6 +54,7 @@ io.on('connection', function(socket) {
         exam[roomId]['users'] = []
         socket.broadcast.emit(roomId + '/start exam')
     })
+    
     socket.on(roomId + '/join exam', function(user) {
       console.log(user.firstname + " joined room")
       const tempUser = {...user}
