@@ -81,7 +81,7 @@ io.on('connection', function(socket) {
       console.log('answer')
       if (exam[roomId].question[index[roomId]].ansText == data.text) {
         const user = exam[roomId].users.find(user => user.id == data.user.id)
-        user.point += (data.timeLeft * 1000) / examTime[roomId]
+        user.point += (data.timeLeft * 1000) / (examTime[roomId] * 60)
       }
       io.emit(roomId + '/result exam', exam[roomId].users)
     })
